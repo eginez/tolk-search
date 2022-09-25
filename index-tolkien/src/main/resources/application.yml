@@ -1,0 +1,7 @@
+micronaut:
+  application:
+    name: indexTolkien
+netty:
+  default:
+    allocator:
+      max-order: 3
