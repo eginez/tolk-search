@@ -1,5 +1,7 @@
 package index.tolkien;
 
+import io.micronaut.core.annotation.ReflectionConfig;
+import io.micronaut.core.annotation.TypeHint;
 import io.micronaut.runtime.Micronaut;
 import java.nio.file.*;
 import java.util.List;
@@ -11,6 +13,12 @@ import java.io.*;
 import java.util.*;
 
 
+@ReflectionConfig(type=org.apache.lucene.index.ConcurrentMergeScheduler.class,
+        accessType = {TypeHint.AccessType.ALL_DECLARED_METHODS, TypeHint.AccessType.ALL_DECLARED_CONSTRUCTORS})
+@ReflectionConfig(type=org.apache.lucene.index.IndexWriter.class,
+        accessType = {TypeHint.AccessType.ALL_DECLARED_METHODS, TypeHint.AccessType.ALL_DECLARED_CONSTRUCTORS})
+@ReflectionConfig(type=org.apache.lucene.store.MMapDirectory.class,
+        accessType = {TypeHint.AccessType.ALL_DECLARED_METHODS, TypeHint.AccessType.ALL_DECLARED_CONSTRUCTORS})
 public class Application {
     public static void main(String[] args) {
         //Micronaut.run(Application.class, args);
@@ -79,12 +87,27 @@ public class Application {
         return all;
     }
 
+    public record IndexableData(int id, float[] embeddings, String text){};
+
+
+    public static List<Document> createDocumentWithEmbeddings(List<IndexableData> data) {
+        List<Document> all = new ArrayList<>();
+        for(IndexableData d : data) {
+            Field content = new StringField("contents", d.text(), Field.Store.YES);
+            Field embeddigns = new KnnVectorField("embeddings", d.embeddings(), VectorSimilarityFunction.COSINE);
+            Document doc = new Document();
+            doc.add(content);
+            doc.add(embeddigns);
+            all.add(doc);
+        };
+        return all;
+    }
+
      public static IndexWriter openIndex(boolean clear) throws IOException,InterruptedException {
         if (clear)
             new ProcessBuilder("rm -rf ./index".split(" ")).start().waitFor();
         Path indexPath = new File("./index/").toPath();
         FSDirectory indexDir = FSDirectory.open(indexPath);
-        IndexWriter indexWriter = new IndexWriter(indexDir, new IndexWriterConfig());
-        return indexWriter;
+         return new IndexWriter(indexDir, new IndexWriterConfig());
     }
 }

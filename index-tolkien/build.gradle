@@ -21,6 +21,8 @@ dependencies {
     runtimeOnly("ch.qos.logback:logback-classic")
     implementation (group: 'org.apache.lucene', name: 'lucene-core', version: '9.3.0')
     compileOnly("org.graalvm.nativeimage:svm")
+    //annotationProcessor("io.micronaut:micronaut-graal")
+
 
     implementation("io.micronaut:micronaut-validation")
 
